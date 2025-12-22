@@ -1,0 +1,1532 @@
+{
+	"info": {
+		"_postman_id": "hospital-system-api",
+		"name": "Sistema Hospitalar - API Completa",
+		"description": "Coleção completa de testes para o Sistema Hospitalar com Keycloak, API Gateway e microserviços",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Autenticação",
+			"item": [
+				{
+					"name": "Obter Token (api-gateway)",
+					"description": "Obtém token usando o client 'api-gateway'. Requer que o client esteja configurado como Public Client com Direct access grants habilitado. Se der erro, use a opção 'Obter Token (admin-cli)'."
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"access_token\", jsonData.access_token);",
+									"    console.log(\"Token obtido e salvo nas variáveis de ambiente\");",
+									"} else {",
+									"    console.log(\"Erro ao obter token: \" + pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "text"
+								},
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "api-gateway",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{keycloak_url}}/realms/hospital/protocol/openid-connect/token",
+							"host": [
+								"{{keycloak_url}}"
+							],
+							"path": [
+								"realms",
+								"hospital",
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						},
+						"description": "Obtém token usando o client 'api-gateway'. Requer que o client esteja configurado como Public Client com Direct access grants habilitado. Se der erro 'invalid client', use a opção 'Obter Token (admin-cli - Alternativa)' abaixo."
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Token (admin-cli - Alternativa)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"access_token\", jsonData.access_token);",
+									"    console.log(\"Token obtido e salvo nas variáveis de ambiente\");",
+									"} else {",
+									"    console.log(\"Erro ao obter token: \" + pm.response.text());",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "text"
+								},
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "admin-cli",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{keycloak_url}}/realms/hospital/protocol/openid-connect/token",
+							"host": [
+								"{{keycloak_url}}"
+							],
+							"path": [
+								"realms",
+								"hospital",
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						},
+						"description": "ALTERNATIVA: Obtém token usando o client 'admin-cli' que já vem configurado no Keycloak. Use esta opção se a primeira opção (api-gateway) der erro 'invalid client'. O token é automaticamente salvo nas variáveis de ambiente."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Agendamento - Pacientes",
+			"item": [
+				{
+					"name": "Criar Paciente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"João Silva\",\n  \"cpf\": \"12345678900\",\n  \"idade\": 35,\n  \"sexo\": \"M\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/api/cadastro/pacientes",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"cadastro",
+								"pacientes"
+							]
+						},
+						"description": "Cria um novo paciente no sistema. Requer role ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Todos os Pacientes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/pacientes",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"pacientes"
+							]
+						},
+						"description": "Lista todos os pacientes cadastrados. Requer role ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Paciente por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/pacientes/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"pacientes",
+								"1"
+							]
+						},
+						"description": "Busca um paciente específico por ID. Requer role ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Paciente",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"João Silva Santos\",\n  \"cpf\": \"12345678900\",\n  \"idade\": 36,\n  \"sexo\": \"M\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/api/pacientes/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"pacientes",
+								"1"
+							]
+						},
+						"description": "Atualiza os dados de um paciente existente. Requer role ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Paciente",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/pacientes/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"pacientes",
+								"1"
+							]
+						},
+						"description": "Remove um paciente do sistema. Requer role ADMIN."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Agendamento - Consultas",
+			"item": [
+				{
+					"name": "Criar Consulta",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pacienteId\": 1,\n  \"horario\": \"2024-12-25T10:00:00\",\n  \"especialidadeMedico\": \"Cardiologia\",\n  \"observacoes\": \"Consulta de rotina - check-up anual\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/api/cadastro/consulta",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"cadastro",
+								"consulta"
+							]
+						},
+						"description": "Cria uma nova consulta. A consulta é automaticamente enviada para o Clínica Service via Kafka. Requer role ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Todas as Consultas",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/consultas",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"consultas"
+							]
+						},
+						"description": "Lista todas as consultas cadastradas. Requer role RECEPCIONISTA ou ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Consulta por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/consultas/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"consultas",
+								"1"
+							]
+						},
+						"description": "Busca uma consulta específica por ID. Requer role RECEPCIONISTA ou ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Consultas por Paciente",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/consultas/paciente/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"consultas",
+								"paciente",
+								"1"
+							]
+						},
+						"description": "Lista todas as consultas de um paciente específico. Requer role RECEPCIONISTA ou ADMIN."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Agendamento - Exames Simples",
+			"item": [
+				{
+					"name": "Criar Exame Simples",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pacienteId\": 1,\n  \"horario\": \"2024-12-26T14:00:00\",\n  \"tipoExame\": \"Raio-X de tórax\",\n  \"observacoes\": \"Exame de rotina\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/api/cadastro/exames",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"cadastro",
+								"exames"
+							]
+						},
+						"description": "Cria um exame simples (raio-X, ultrassom, etc.). Requer role ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Todos os Exames",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/exames",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"exames"
+							]
+						},
+						"description": "Lista todos os exames simples cadastrados. Requer role ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Exame por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/exames/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"exames",
+								"1"
+							]
+						},
+						"description": "Busca um exame simples específico por ID. Requer role ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Exames por Paciente",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/exames/paciente/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"exames",
+								"paciente",
+								"1"
+							]
+						},
+						"description": "Lista todos os exames simples de um paciente. Requer role ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Exame",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pacienteId\": 1,\n  \"horario\": \"2024-12-26T15:00:00\",\n  \"tipoExame\": \"Raio-X de tórax atualizado\",\n  \"observacoes\": \"Exame atualizado\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/api/exames/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"exames",
+								"1"
+							]
+						},
+						"description": "Atualiza um exame simples existente. Requer role ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Exame",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/exames/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"exames",
+								"1"
+							]
+						},
+						"description": "Remove um exame simples do sistema. Requer role ADMIN."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Clínica - Médicos",
+			"item": [
+				{
+					"name": "Criar Médico",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Dr. Carlos Mendes\",\n  \"cpf\": \"98765432100\",\n  \"especialidade\": \"Cardiologia\",\n  \"crm\": \"CRM12345\",\n  \"telefone\": \"(11) 91234-5678\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/api/medicos",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"medicos"
+							]
+						},
+						"description": "Cria um novo médico no sistema. Requer role ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Todos os Médicos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/medicos",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"medicos"
+							]
+						},
+						"description": "Lista todos os médicos cadastrados. Requer role ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Médico por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/medicos/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"medicos",
+								"1"
+							]
+						},
+						"description": "Busca um médico específico por ID. Requer role ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Médico",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Dr. Carlos Mendes Silva\",\n  \"cpf\": \"98765432100\",\n  \"especialidade\": \"Cardiologia\",\n  \"crm\": \"CRM12345\",\n  \"telefone\": \"(11) 91234-9999\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/api/medicos/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"medicos",
+								"1"
+							]
+						},
+						"description": "Atualiza os dados de um médico existente. Requer role ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Médico",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/medicos/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"medicos",
+								"1"
+							]
+						},
+						"description": "Remove um médico do sistema. Requer role ADMIN."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. Clínica - Consultas",
+			"item": [
+				{
+					"name": "Listar Consultas Agendadas (Sem Filtro)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/clinica/consultas/agendadas",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"clinica",
+								"consultas",
+								"agendadas"
+							]
+						},
+						"description": "Lista todas as consultas com status AGENDADA. Requer role MEDICO ou ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Consultas Agendadas (Com Especialidade)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/clinica/consultas/agendadas?especialidade=Cardiologia",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"clinica",
+								"consultas",
+								"agendadas"
+							],
+							"query": [
+								{
+									"key": "especialidade",
+									"value": "Cardiologia"
+								}
+							]
+						},
+						"description": "Lista consultas agendadas filtradas por especialidade. Requer role MEDICO ou ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Todas as Consultas",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/clinica/consultas",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"clinica",
+								"consultas"
+							]
+						},
+						"description": "Lista todas as consultas no sistema. Requer role MEDICO ou ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Consulta por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/clinica/consultas/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"clinica",
+								"consultas",
+								"1"
+							]
+						},
+						"description": "Busca uma consulta específica por ID. Requer role MEDICO ou ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Consultas por CPF",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/clinica/consultas/cpf/12345678900",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"clinica",
+								"consultas",
+								"cpf",
+								"12345678900"
+							]
+						},
+						"description": "Lista todas as consultas de um paciente específico pelo CPF. Requer role PACIENTE, MEDICO, RECEPCIONISTA ou ADMIN."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "7. Clínica - Atender Consulta",
+			"item": [
+				{
+					"name": "Atender Consulta SEM Exame Complexo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"consultaId\": 1,\n  \"sintomas\": [\"dor de cabeça\", \"febre leve\"],\n  \"observacoes\": \"Paciente relatou sintomas há 2 dias. Estado geral bom.\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/clinica/atenderConsulta",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"clinica",
+								"atenderConsulta"
+							]
+						},
+						"description": "Atende uma consulta sem solicitar exame complexo. O sistema diagnostica doenças baseado nos sintomas. Requer role MEDICO ou ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Atender Consulta COM Exame Complexo (Prioridade ALTA)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"consultaId\": 1,\n  \"sintomas\": [\"dor no peito\", \"falta de ar\", \"tontura\"],\n  \"observacoes\": \"Paciente com sintomas cardíacos. Necessário exame urgente.\",\n  \"tipoExameSolicitado\": \"Hemograma completo\",\n  \"prioridadeExame\": \"ALTA\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/clinica/atenderConsulta",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"clinica",
+								"atenderConsulta"
+							]
+						},
+						"description": "Atende uma consulta solicitando um exame complexo com prioridade ALTA. O exame é automaticamente enviado para o Laboratório Service via Kafka. Requer role MEDICO ou ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Atender Consulta COM Exame Complexo EMERGENCIAL",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"consultaId\": 1,\n  \"sintomas\": [\"dor intensa no peito\", \"suor frio\", \"náusea\"],\n  \"observacoes\": \"Sintomas de possível infarto. EXAME EMERGENCIAL NECESSÁRIO!\",\n  \"tipoExameSolicitado\": \"Eletrocardiograma + Enzimas cardíacas\",\n  \"prioridadeExame\": \"EMERGENCIAL\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/clinica/atenderConsulta",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"clinica",
+								"atenderConsulta"
+							]
+						},
+						"description": "Atende uma consulta solicitando um exame complexo com prioridade EMERGENCIAL. O exame é automaticamente enviado para o Laboratório Service via Kafka. Requer role MEDICO ou ADMIN."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "8. Laboratório - Solicitações",
+			"item": [
+				{
+					"name": "Criar Solicitação de Procedimento (Manual)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cpf\": \"12345678900\",\n  \"procedimento\": \"Hemograma completo\",\n  \"tipo\": \"EXAME\",\n  \"prioridade\": \"PADRAO\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/api/procedimento/marcar",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"procedimento",
+								"marcar"
+							]
+						},
+						"description": "Cria uma solicitação de procedimento manualmente. As solicitações também podem ser criadas automaticamente via Kafka quando um médico atende uma consulta. Tipos válidos: EXAME, PROCEDIMENTO. Prioridades válidas: BAIXA, PADRAO, ALTA, EMERGENCIAL. Requer role LABORATORIO ou ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Solicitações por CPF",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/procedimento?cpf=12345678900",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"procedimento"
+							],
+							"query": [
+								{
+									"key": "cpf",
+									"value": "12345678900"
+								}
+							]
+						},
+						"description": "Lista todas as solicitações de procedimentos de um paciente pelo CPF. Requer role LABORATORIO ou ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Solicitação por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/procedimento/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"procedimento",
+								"1"
+							]
+						},
+						"description": "Busca uma solicitação específica por ID. Requer role LABORATORIO ou ADMIN."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "9. Laboratório - Agendar Horário",
+			"item": [
+				{
+					"name": "Agendar Horário (Prioridade Normal)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"horario\": \"2024-12-26T09:00:00\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/api/marcarHorario/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"marcarHorario",
+								"1"
+							]
+						},
+						"description": "Agenda um horário para uma solicitação de procedimento. Requer role RECEPCIONISTA ou ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Agendar Horário EMERGENCIAL (Testa Regra de Cancelamento)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"horario\": \"2024-12-26T09:00:00\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/api/marcarHorario/2",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"marcarHorario",
+								"2"
+							]
+						},
+						"description": "Agenda um horário EMERGENCIAL. Se já existe um exame neste horário, ele é CANCELADO e REAGENDADO automaticamente para +30 minutos. O exame emergencial é marcado no horário desejado. Requer role RECEPCIONISTA ou ADMIN."
+					},
+					"response": []
+				},
+				{
+					"name": "Alterar Horário de Procedimento",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"horario\": \"2024-12-26T10:30:00\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/api/marcarHorario/1/alterar",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"marcarHorario",
+								"1",
+								"alterar"
+							]
+						},
+						"description": "Altera o horário de uma solicitação já agendada. Requer role RECEPCIONISTA ou ADMIN."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "10. Health Checks",
+			"item": [
+				{
+					"name": "API Gateway Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_gateway_url}}/actuator/health",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Verifica a saúde do API Gateway. Endpoint público (não requer autenticação)."
+					},
+					"response": []
+				},
+				{
+					"name": "Agendamento Service Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{agendamento_service_url}}/actuator/health",
+							"host": [
+								"{{agendamento_service_url}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Verifica a saúde do Agendamento Service. Endpoint público."
+					},
+					"response": []
+				},
+				{
+					"name": "Clínica Service Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{clinica_service_url}}/actuator/health",
+							"host": [
+								"{{clinica_service_url}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Verifica a saúde do Clínica Service. Endpoint público."
+					},
+					"response": []
+				},
+				{
+					"name": "Laboratório Service Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{laboratorio_service_url}}/actuator/health",
+							"host": [
+								"{{laboratorio_service_url}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Verifica a saúde do Laboratório Service. Endpoint público."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "11. Fluxo Completo - Teste End-to-End",
+			"item": [
+				{
+					"name": "PASSO 1: Criar Paciente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Maria Santos\",\n  \"cpf\": \"11122233344\",\n  \"idade\": 45,\n  \"sexo\": \"F\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/api/cadastro/pacientes",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"cadastro",
+								"pacientes"
+							]
+						},
+						"description": "Primeiro passo: Criar um paciente. Anote o ID retornado para usar nos próximos passos."
+					},
+					"response": []
+				},
+				{
+					"name": "PASSO 2: Criar Consulta",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pacienteId\": 1,\n  \"horario\": \"2024-12-27T14:00:00\",\n  \"especialidadeMedico\": \"Cardiologia\",\n  \"observacoes\": \"Primeira consulta\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/api/cadastro/consulta",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"cadastro",
+								"consulta"
+							]
+						},
+						"description": "Segundo passo: Criar uma consulta. A consulta é automaticamente enviada para o Clínica Service via Kafka. Anote o ID retornado."
+					},
+					"response": []
+				},
+				{
+					"name": "PASSO 3: Verificar Consulta no Clínica Service (Kafka)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/clinica/consultas/agendadas?especialidade=Cardiologia",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"clinica",
+								"consultas",
+								"agendadas"
+							],
+							"query": [
+								{
+									"key": "especialidade",
+									"value": "Cardiologia"
+								}
+							]
+						},
+						"description": "Terceiro passo: Aguarde alguns segundos e verifique se a consulta apareceu no Clínica Service via Kafka."
+					},
+					"response": []
+				},
+				{
+					"name": "PASSO 4: Atender Consulta (com exame complexo)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"consultaId\": 1,\n  \"sintomas\": [\"dor no peito\", \"palpitação\"],\n  \"observacoes\": \"Paciente com sintomas cardíacos\",\n  \"tipoExameSolicitado\": \"Eletrocardiograma\",\n  \"prioridadeExame\": \"EMERGENCIAL\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/clinica/atenderConsulta",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"clinica",
+								"atenderConsulta"
+							]
+						},
+						"description": "Quarto passo: Atender a consulta solicitando um exame complexo. O exame é automaticamente enviado para o Laboratório Service via Kafka."
+					},
+					"response": []
+				},
+				{
+					"name": "PASSO 5: Verificar Solicitação no Laboratório (Kafka)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_gateway_url}}/api/procedimento?cpf=11122233344",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"procedimento"
+							],
+							"query": [
+								{
+									"key": "cpf",
+									"value": "11122233344"
+								}
+							]
+						},
+						"description": "Quinto passo: Aguarde alguns segundos e verifique se a solicitação apareceu no Laboratório Service via Kafka. Anote o ID da solicitação."
+					},
+					"response": []
+				},
+				{
+					"name": "PASSO 6: Agendar Horário do Exame",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"horario\": \"2024-12-27T15:00:00\"\n}"
+						},
+						"url": {
+							"raw": "{{api_gateway_url}}/api/marcarHorario/1",
+							"host": [
+								"{{api_gateway_url}}"
+							],
+							"path": [
+								"api",
+								"marcarHorario",
+								"1"
+							]
+						},
+						"description": "Sexto passo: Agendar o horário do exame. Use o ID da solicitação retornado no passo anterior."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "api_gateway_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "keycloak_url",
+			"value": "http://localhost:8085",
+			"type": "string"
+		},
+		{
+			"key": "agendamento_service_url",
+			"value": "http://localhost:8082",
+			"type": "string"
+		},
+		{
+			"key": "clinica_service_url",
+			"value": "http://localhost:8083",
+			"type": "string"
+		},
+		{
+			"key": "laboratorio_service_url",
+			"value": "http://localhost:8084",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

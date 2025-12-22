@@ -1,0 +1,434 @@
+### ============================================
+### SISTEMA HOSPITALAR - TESTES COMPLETOS
+### ============================================
+### Use a extensão REST Client no VS Code
+### Ou importe no Postman/Insomnia
+### ============================================
+
+@baseUrl = http://localhost:8080
+@agendamentoUrl = http://localhost:8082
+@clinicaUrl = http://localhost:8083
+@laboratorioUrl = http://localhost:8084
+@keycloakUrl = http://localhost:8085
+
+### ============================================
+### 1. AUTENTICAÇÃO - OBTER TOKEN KEYCLOAK
+### ============================================
+### (Configure primeiro o Keycloak seguindo os guias)
+### ============================================
+
+# @name getToken
+POST {{keycloakUrl}}/realms/hospital/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+username=admin
+&password=admin
+&grant_type=password
+&client_id=api-gateway
+&client_secret=seu-client-secret-aqui
+
+### Copie o access_token da resposta e use abaixo
+@token = seu-token-aqui
+
+### ============================================
+### 2. AGENDAMENTO SERVICE - PACIENTES
+### ============================================
+
+### Criar Paciente
+# @name criarPaciente
+POST {{baseUrl}}/api/cadastro/pacientes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "João Silva",
+  "cpf": "12345678900",
+  "idade": 35,
+  "sexo": "MASCULINO",
+  "telefone": "(11) 98765-4321",
+  "endereco": "Rua das Flores, 123"
+}
+
+### Listar Todos os Pacientes
+GET {{baseUrl}}/api/pacientes
+Authorization: Bearer {{token}}
+
+### Buscar Paciente por ID (use o ID retornado acima)
+GET {{baseUrl}}/api/pacientes/1
+Authorization: Bearer {{token}}
+
+### Atualizar Paciente
+PUT {{baseUrl}}/api/pacientes/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "João Silva Santos",
+  "cpf": "12345678900",
+  "idade": 36,
+  "sexo": "MASCULINO",
+  "telefone": "(11) 98765-4321",
+  "endereco": "Rua das Flores, 456"
+}
+
+### ============================================
+### 3. AGENDAMENTO SERVICE - CONSULTAS
+### ============================================
+
+### Criar Consulta (use o pacienteId retornado acima)
+# @name criarConsulta
+POST {{baseUrl}}/api/cadastro/consulta
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pacienteId": 1,
+  "horario": "2024-12-25T10:00:00",
+  "especialidadeMedico": "Cardiologia",
+  "observacoes": "Consulta de rotina - check-up anual"
+}
+
+### Listar Todas as Consultas
+GET {{baseUrl}}/api/consultas
+Authorization: Bearer {{token}}
+
+### Buscar Consulta por ID
+GET {{baseUrl}}/api/consultas/1
+Authorization: Bearer {{token}}
+
+### Listar Consultas por Paciente
+GET {{baseUrl}}/api/consultas/paciente/1
+Authorization: Bearer {{token}}
+
+### Atualizar Consulta
+PUT {{baseUrl}}/api/consultas/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pacienteId": 1,
+  "horario": "2024-12-25T11:00:00",
+  "especialidadeMedico": "Cardiologia",
+  "observacoes": "Consulta alterada"
+}
+
+### ============================================
+### 4. AGENDAMENTO SERVICE - EXAMES SIMPLES
+### ============================================
+
+### Criar Exame Simples
+POST {{baseUrl}}/api/cadastro/exames
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pacienteId": 1,
+  "horario": "2024-12-26T14:00:00",
+  "tipoExame": "Raio-X de tórax",
+  "observacoes": "Exame de rotina"
+}
+
+### Listar Todos os Exames
+GET {{baseUrl}}/api/exames
+Authorization: Bearer {{token}}
+
+### Buscar Exame por ID
+GET {{baseUrl}}/api/exames/1
+Authorization: Bearer {{token}}
+
+### ============================================
+### 5. CLÍNICA SERVICE - MÉDICOS
+### ============================================
+
+### Criar Médico
+# @name criarMedico
+POST {{baseUrl}}/api/medicos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Dr. Carlos Mendes",
+  "cpf": "98765432100",
+  "especialidade": "Cardiologia",
+  "crm": "CRM12345",
+  "telefone": "(11) 91234-5678"
+}
+
+### Listar Todos os Médicos
+GET {{baseUrl}}/api/medicos
+Authorization: Bearer {{token}}
+
+### Buscar Médico por ID
+GET {{baseUrl}}/api/medicos/1
+Authorization: Bearer {{token}}
+
+### ============================================
+### 6. CLÍNICA SERVICE - CONSULTAS
+### ============================================
+
+### Listar Consultas Agendadas (sem filtro)
+GET {{baseUrl}}/clinica/consultas/agendadas
+Authorization: Bearer {{token}}
+
+### Listar Consultas Agendadas (com especialidade)
+GET {{baseUrl}}/clinica/consultas/agendadas?especialidade=Cardiologia
+Authorization: Bearer {{token}}
+
+### Listar Todas as Consultas
+GET {{baseUrl}}/clinica/consultas
+Authorization: Bearer {{token}}
+
+### Buscar Consulta por ID
+GET {{baseUrl}}/clinica/consultas/1
+Authorization: Bearer {{token}}
+
+### Listar Consultas por CPF
+GET {{baseUrl}}/clinica/consultas/cpf/12345678900
+Authorization: Bearer {{token}}
+
+### ============================================
+### 7. CLÍNICA SERVICE - ATENDER CONSULTA
+### ============================================
+### ESTE É O ENDPOINT PRINCIPAL DO FLUXO!
+### ============================================
+
+### Atender Consulta SEM Exame Complexo
+# @name atenderConsultaSemExame
+POST {{baseUrl}}/clinica/atenderConsulta
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consultaId": 1,
+  "sintomas": ["dor de cabeça", "febre leve"],
+  "observacoes": "Paciente relatou sintomas há 2 dias. Estado geral bom.",
+  "tipoExameSolicitado": null,
+  "prioridadeExame": null
+}
+
+### Atender Consulta COM Exame Complexo (Prioridade ALTA)
+# @name atenderConsultaComExame
+POST {{baseUrl}}/clinica/atenderConsulta
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consultaId": 1,
+  "sintomas": ["dor no peito", "falta de ar", "tontura"],
+  "observacoes": "Paciente com sintomas cardíacos. Necessário exame urgente.",
+  "tipoExameSolicitado": "Hemograma completo",
+  "prioridadeExame": "ALTA"
+}
+
+### Atender Consulta COM Exame Complexo EMERGENCIAL
+# @name atenderConsultaEmergencial
+POST {{baseUrl}}/clinica/atenderConsulta
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consultaId": 1,
+  "sintomas": ["dor intensa no peito", "suor frio", "náusea"],
+  "observacoes": "Sintomas de possível infarto. EXAME EMERGENCIAL NECESSÁRIO!",
+  "tipoExameSolicitado": "Eletrocardiograma + Enzimas cardíacas",
+  "prioridadeExame": "EMERGENCIAL"
+}
+
+### ============================================
+### 8. LABORATÓRIO SERVICE - SOLICITAÇÕES
+### ============================================
+### (As solicitações também podem ser criadas via Kafka
+###  quando o médico atende uma consulta)
+### ============================================
+
+### Criar Solicitação de Procedimento Manualmente
+# @name criarSolicitacao
+POST {{baseUrl}}/api/procedimento/marcar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cpf": "12345678900",
+  "procedimento": "Hemograma completo",
+  "tipo": "EXAME",
+  "prioridade": "PADRAO"
+}
+
+### Listar Solicitações por CPF
+GET {{baseUrl}}/api/procedimento?cpf=12345678900
+Authorization: Bearer {{token}}
+
+### Buscar Solicitação por ID
+GET {{baseUrl}}/api/procedimento/1
+Authorization: Bearer {{token}}
+
+### ============================================
+### 9. LABORATÓRIO SERVICE - AGENDAR HORÁRIO
+### ============================================
+### IMPORTANTE: Use o ID da solicitação retornada acima
+### ============================================
+
+### Agendar Horário (Prioridade Normal)
+# @name agendarHorario
+POST {{baseUrl}}/api/marcarHorario/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "horario": "2024-12-26T09:00:00"
+}
+
+### Agendar Horário EMERGENCIAL (testa a regra de cancelamento)
+# @name agendarHorarioEmergencial
+POST {{baseUrl}}/api/marcarHorario/2
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "horario": "2024-12-26T09:00:00"
+}
+
+### ============================================
+### 10. LABORATÓRIO SERVICE - ALTERAR HORÁRIO
+### ============================================
+
+### Alterar Horário de Solicitação Agendada
+PUT {{baseUrl}}/api/marcarHorario/1/alterar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "horario": "2024-12-26T10:30:00"
+}
+
+### ============================================
+### 11. TESTE DO FLUXO COMPLETO
+### ============================================
+### Execute na ordem para testar todo o sistema
+### ============================================
+
+### PASSO 1: Criar Paciente
+POST {{baseUrl}}/api/cadastro/pacientes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Maria Santos",
+  "cpf": "11122233344",
+  "idade": 45,
+  "sexo": "FEMININO",
+  "telefone": "(11) 99999-8888",
+  "endereco": "Av. Principal, 789"
+}
+
+### PASSO 2: Criar Consulta
+POST {{baseUrl}}/api/cadastro/consulta
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pacienteId": 2,
+  "horario": "2024-12-27T14:00:00",
+  "especialidadeMedico": "Cardiologia",
+  "observacoes": "Primeira consulta"
+}
+
+### PASSO 3: Verificar Consulta no Clínica Service (deve aparecer via Kafka)
+GET {{baseUrl}}/clinica/consultas/agendadas?especialidade=Cardiologia
+Authorization: Bearer {{token}}
+
+### PASSO 4: Atender Consulta (com exame complexo)
+POST {{baseUrl}}/clinica/atenderConsulta
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "consultaId": 2,
+  "sintomas": ["dor no peito", "palpitação"],
+  "observacoes": "Paciente com sintomas cardíacos",
+  "tipoExameSolicitado": "Eletrocardiograma",
+  "prioridadeExame": "EMERGENCIAL"
+}
+
+### PASSO 5: Verificar Solicitação Criada no Laboratório (via Kafka)
+GET {{baseUrl}}/api/procedimento?cpf=11122233344
+Authorization: Bearer {{token}}
+
+### PASSO 6: Agendar Horário do Exame (testa regra EMERGENCIAL)
+POST {{baseUrl}}/api/marcarHorario/3
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "horario": "2024-12-27T15:00:00"
+}
+
+### PASSO 7: Criar outro exame no mesmo horário para testar cancelamento
+POST {{baseUrl}}/api/procedimento/marcar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cpf": "11122233344",
+  "procedimento": "Exame de sangue",
+  "tipo": "EXAME",
+  "prioridade": "PADRAO"
+}
+
+### PASSO 8: Agendar o segundo exame
+POST {{baseUrl}}/api/marcarHorario/4
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "horario": "2024-12-27T15:00:00"
+}
+
+### PASSO 9: Agendar exame EMERGENCIAL no mesmo horário (deve cancelar o anterior)
+POST {{baseUrl}}/api/marcarHorario/3
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "horario": "2024-12-27T15:00:00"
+}
+
+### PASSO 10: Verificar que o exame anterior foi reagendado
+GET {{baseUrl}}/api/procedimento/4
+Authorization: Bearer {{token}}
+
+### ============================================
+### 12. ENDPOINTS PÚBLICOS (sem autenticação)
+### ============================================
+
+### Health Check - API Gateway
+GET {{baseUrl}}/actuator/health
+
+### Health Check - Agendamento
+GET {{agendamentoUrl}}/actuator/health
+
+### Health Check - Clínica
+GET {{clinicaUrl}}/actuator/health
+
+### Health Check - Laboratório
+GET {{laboratorioUrl}}/actuator/health
+
+### ============================================
+### 13. SWAGGER UI (Documentação)
+### ============================================
+
+### Agendamento Service Swagger
+GET {{agendamentoUrl}}/swagger-ui.html
+
+### Clínica Service Swagger
+GET {{clinicaUrl}}/swagger-ui.html
+
+### Laboratório Service Swagger
+GET {{laboratorioUrl}}/swagger-ui.html
+
+### ============================================
+### FIM DOS TESTES
+### ============================================
+
+
+
